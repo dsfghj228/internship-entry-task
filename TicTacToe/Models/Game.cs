@@ -11,6 +11,7 @@ namespace TicTacToe.Models
         public Guid PlayerOneId { get; set; }
         public Guid PlayerTwoId { get; set; }
         public GameStatus Status { get; set; }
+        public int StepCount  { get; set; }
         
         private Board InitializeBoard(int Size)
         {
@@ -29,7 +30,7 @@ namespace TicTacToe.Models
             return board;
         }
 
-        public Game InitializeGame(Guid PlayerOneId, Guid PlayerTwoId)
+        private Game InitializeGame(Guid PlayerOneId, Guid PlayerTwoId)
         {
             return new Game
             {
@@ -37,7 +38,8 @@ namespace TicTacToe.Models
                 Board = InitializeBoard(5),
                 PlayerOneId = PlayerOneId,
                 PlayerTwoId = PlayerTwoId,
-                Status = GameStatus.NotStarted
+                Status = GameStatus.NotStarted,
+                StepCount = 0
             };
         }
 
