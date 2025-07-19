@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TicTacToe.Data;
+using TicTacToe.Interfaces;
+using TicTacToe.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddScoped<IGameRepository, GameRepository>();
 
 var app = builder.Build();
 

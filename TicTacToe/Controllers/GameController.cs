@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TicTacToe.Interfaces;
 using TicTacToe.Models;
 
 namespace TicTacToe.Controllers
@@ -9,21 +10,23 @@ namespace TicTacToe.Controllers
     {
         private static Game _currentGame;
         private readonly IConfiguration _config;
+        private readonly IGameRepository _gameRepository;
 
-        public GameController(IConfiguration config)
+        public GameController(IConfiguration config, IGameRepository gameRepository)
         {
             _config = config;
+            _gameRepository = gameRepository;
         }
 
         [HttpPost("create")]
-        public IActionResult CreateGame(Guid playerOneId, Guid playerTwoId)
+        public async Task<IActionResult> CreateGame(Guid playerOneId, Guid playerTwoId)
         {
             try
             {
                 var size = _config.GetValue<int>("AppSettings:Size");
-                _currentGame = Game.StartGame(playerOneId, playerTwoId, size);
-            
-                return Ok(_currentGame);
+                var gameForCreate = Game.StartGame(playerOneId, playerTwoId, size);
+                var newGame = await _gameRepository.CreateGameAsync(gameForCreate);
+                return Ok(newGame);
             }
             catch (Exception ex)
             {
@@ -31,10 +34,23 @@ namespace TicTacToe.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult GetGame()
+        [HttpGet("{gameId}")]
+        public async Task<IActionResult> GetGame(Guid gameId)
         {
-            return Ok(_currentGame);
+            try
+            {
+                var game = await _gameRepository.GetByIdAsync(gameId);
+                if (game == null)
+                {
+                    return NotFound();
+                }
+                
+                return Ok(game);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Internal server error: " + e.Message);
+            }
         }
 
         [HttpPost("move")]
@@ -46,11 +62,23 @@ namespace TicTacToe.Controllers
             
         }
 
-        [HttpDelete]
-        public IActionResult DeleteGame()
+        [HttpDelete("{gameId}")]
+        public async Task<IActionResult> DeleteGame(Guid gameId)
         {
-            _currentGame = null;
-            return Ok();
+            try
+            {
+                var res = await _gameRepository.DeleteGameAsync(gameId);
+                if (!res)
+                {
+                    return NotFound();
+                }
+                return Ok();
+                
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Internal server error: " + e.Message);
+            }
         }
         
     }
