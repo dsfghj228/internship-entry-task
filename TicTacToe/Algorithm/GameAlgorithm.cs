@@ -47,7 +47,7 @@ namespace TicTacToe.Algorithm
                 var win = true;
                 for (int col = 1; col < size; col++)
                 {
-                    if (board.Cells[col][row] != firstSymbol)
+                    if (board.Cells[row][col] != firstSymbol)
                     {
                         win = false;
                         break;

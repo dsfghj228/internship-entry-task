@@ -38,7 +38,7 @@ namespace TicTacToe.Models
             return new Game
             {
                 Id = Guid.NewGuid(),
-                Board = InitializeBoard(5),
+                Board = InitializeBoard(size),
                 Size = size,
                 PlayerOneId = playerOneId,
                 PlayerTwoId = playerTwoId,
@@ -53,11 +53,11 @@ namespace TicTacToe.Models
             return InitializeGame(playerOneId, playerTwoId, size);
         }
 
-        public Game Move(Game game, Guid playerId, int row, int column)
+        public static Game Move(Game game, Guid playerId, int row, int column)
         {
             if (game.Status == GameStatus.NotStarted)
             {
-                throw new InvalidOperationException("Игра не начата");
+                game.Status = GameStatus.InProgress;
             }
             
             if (game.Status == GameStatus.Finished)
@@ -110,6 +110,8 @@ namespace TicTacToe.Models
                     game.Board.Cells[row][column] = Cell.O;
                 }
             }
+            
+            game.CurrentPlayerId = game.PlayerOneId == playerId ? game.PlayerTwoId : game.PlayerOneId;
 
             if (GameAlgorithm.VerticalCheck(game.Board, game.Size) ||
                 GameAlgorithm.HorizontalCheck(game.Board, game.Size) ||
@@ -123,6 +125,13 @@ namespace TicTacToe.Models
                 game.Status = GameStatus.InProgress;
             }
             game.StepCount++;
+
+            if (game.StepCount >= (game.Size * game.Size))
+            {
+                game.Status = GameStatus.Finished;
+            }
+            
+            
             
             return game;
         }
