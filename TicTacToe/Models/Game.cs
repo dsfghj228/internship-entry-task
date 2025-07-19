@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using TicTacToe.Enums;
+using TicTacToe.Algorithm;
 
 namespace TicTacToe.Models
 {
@@ -8,12 +9,14 @@ namespace TicTacToe.Models
         public Guid Id { get; set; }
         [Required]
         public Board Board { get; set; }
+        public int Size { get; set; }
         public Guid PlayerOneId { get; set; }
         public Guid PlayerTwoId { get; set; }
+        public Guid CurrentPlayerId { get; set; }
         public GameStatus Status { get; set; }
         public int StepCount  { get; set; }
         
-        private Board InitializeBoard(int Size)
+        private static Board InitializeBoard(int Size)
         {
             var board = new Board();
             board.Cells = new List<List<Cell>>();
@@ -30,22 +33,98 @@ namespace TicTacToe.Models
             return board;
         }
 
-        private Game InitializeGame(Guid PlayerOneId, Guid PlayerTwoId)
+        private static Game InitializeGame(Guid playerOneId, Guid playerTwoId, int size)
         {
             return new Game
             {
                 Id = Guid.NewGuid(),
                 Board = InitializeBoard(5),
-                PlayerOneId = PlayerOneId,
-                PlayerTwoId = PlayerTwoId,
+                Size = size,
+                PlayerOneId = playerOneId,
+                PlayerTwoId = playerTwoId,
+                CurrentPlayerId = playerOneId,
                 Status = GameStatus.NotStarted,
                 StepCount = 0
             };
         }
 
-        public Game StartGame(Guid PlayerOneId, Guid PlayerTwoId)
+        public static Game StartGame(Guid playerOneId, Guid playerTwoId, int size)
         {
-            return InitializeGame(PlayerOneId, PlayerTwoId);
+            return InitializeGame(playerOneId, playerTwoId, size);
+        }
+
+        public Game Move(Game game, Guid playerId, int row, int column)
+        {
+            if (game.Status == GameStatus.NotStarted)
+            {
+                throw new InvalidOperationException("Игра не начата");
+            }
+            
+            if (game.Status == GameStatus.Finished)
+            {
+                throw new InvalidOperationException("Игра уже закончилась");
+            }
+
+            if (game.Board.Cells[row][column] != Cell.Empty)
+            {
+                throw new InvalidOperationException("Клетка уже занята");
+            }
+
+            if (game.Size < row || column > game.Size)
+            {
+                throw new InvalidOperationException("Ячейки с таким индексом не существует");
+            }
+
+            if (playerId != game.CurrentPlayerId)
+            {
+                throw new InvalidOperationException("Сейчас очередь другого игрока");
+            }
+
+            if (game.PlayerOneId != playerId && game.PlayerTwoId != playerId)
+            {
+                throw new InvalidOperationException("В данной игре нет игроков с таким Id");
+            }
+            
+            
+            
+            Random random = new Random();
+
+            if (game.PlayerOneId == playerId)
+            {
+                if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
+                {
+                    game.Board.Cells[row][column] = Cell.O;
+                }
+                else
+                {
+                    game.Board.Cells[row][column] = Cell.X;
+                }
+            }else if (game.PlayerTwoId == playerId)
+            {
+                if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
+                {
+                    game.Board.Cells[row][column] = Cell.X;
+                }
+                else
+                {
+                    game.Board.Cells[row][column] = Cell.O;
+                }
+            }
+
+            if (GameAlgorithm.VerticalCheck(game.Board, game.Size) ||
+                GameAlgorithm.HorizontalCheck(game.Board, game.Size) ||
+                GameAlgorithm.CrossCheck(game.Board, game.Size))
+            {
+                game.Status = GameStatus.Finished;
+            }
+            
+            if (game.StepCount == 0)
+            {
+                game.Status = GameStatus.InProgress;
+            }
+            game.StepCount++;
+            
+            return game;
         }
     }
 }

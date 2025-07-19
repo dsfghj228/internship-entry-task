@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices.ComTypes;
 using TicTacToe.Enums;
 using TicTacToe.Models;
 
@@ -6,7 +5,7 @@ namespace TicTacToe.Algorithm
 {
     public class GameAlgorithm
     {
-        public bool VerticalCheck(Board board, int size)
+        public static bool VerticalCheck(Board board, int size)
         {
             for (int col = 0; col < size; col++)
             {
@@ -36,7 +35,7 @@ namespace TicTacToe.Algorithm
             return false;
         }
         
-        public bool HorizontalCheck(Board board, int size)
+        public static bool HorizontalCheck(Board board, int size)
         {
             for (int row = 0; row < size; row++)
             {
@@ -64,7 +63,7 @@ namespace TicTacToe.Algorithm
             return false;
         }
         
-        public bool CrossCheck(Board board, int size)
+        public static bool CrossCheck(Board board, int size)
         {
             var firstSymbol = board.Cells[0][0];
             if (firstSymbol != Cell.Empty)
