@@ -7,6 +7,7 @@ namespace TicTacToe.Interfaces
         Task<Game> GetByIdAsync(Guid id);
         Task<Game> CreateGameAsync(Game game);
         Task<bool> DeleteGameAsync(Guid id);
+        Task<Game> MoveAsync(Game game);
     }
 }
 

@@ -53,12 +53,31 @@ namespace TicTacToe.Controllers
             }
         }
 
-        [HttpPost("move")]
-        public IActionResult Move(int row, int column)
+        [HttpPost("move/{gameId}")]
+        public async Task<IActionResult> Move(Guid gameId, int row, int column)
         {
-            var curPlayer = _currentGame.CurrentPlayerId;
-            _currentGame = Game.Move(_currentGame, curPlayer, row, column);
-            return Ok(_currentGame);
+            try
+            {
+                // var curPlayer = _currentGame.CurrentPlayerId;
+                // _currentGame = Game.Move(_currentGame, curPlayer, row, column);
+                // return Ok(_currentGame);
+
+                var game = await _gameRepository.GetByIdAsync(gameId);
+                if (game == null)
+                {
+                    return NotFound();
+                }
+
+                var curPlayer = game.CurrentPlayerId;
+                var updatedGame = Game.Move(game, curPlayer, row, column);
+                await _gameRepository.MoveAsync(updatedGame);
+                return Ok(updatedGame);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
             
         }
 

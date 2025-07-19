@@ -37,5 +37,12 @@ namespace TicTacToe.Repository
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<Game> MoveAsync(Game game)
+        {
+            _context.Games.Update(game);
+            await _context.SaveChangesAsync();
+            return game;
+        }
     }
 }
