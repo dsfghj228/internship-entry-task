@@ -5,11 +5,11 @@ namespace TicTacToe.Algorithm
 {
     public class GameAlgorithm
     {
-        public static bool VerticalCheck(Board board, int size)
+        public static bool VerticalCheck(List<List<Cell>> board, int size)
         {
             for (int col = 0; col < size; col++)
             {
-                var firstSymbol = board.Cells[0][col];
+                var firstSymbol = board[0][col];
                 if (firstSymbol == Cell.Empty)
                 {
                     continue;
@@ -19,7 +19,7 @@ namespace TicTacToe.Algorithm
 
                 for (int row = 1; row < size; row++)
                 {
-                    if (board.Cells[row][col] != firstSymbol)
+                    if (board[row][col] != firstSymbol)
                     {
                         win = false;
                         break;
@@ -35,11 +35,11 @@ namespace TicTacToe.Algorithm
             return false;
         }
         
-        public static bool HorizontalCheck(Board board, int size)
+        public static bool HorizontalCheck(List<List<Cell>> board, int size)
         {
             for (int row = 0; row < size; row++)
             {
-                var firstSymbol = board.Cells[row][0];
+                var firstSymbol = board[row][0];
                 if (firstSymbol == Cell.Empty)
                 {
                     continue;
@@ -47,7 +47,7 @@ namespace TicTacToe.Algorithm
                 var win = true;
                 for (int col = 1; col < size; col++)
                 {
-                    if (board.Cells[row][col] != firstSymbol)
+                    if (board[row][col] != firstSymbol)
                     {
                         win = false;
                         break;
@@ -63,15 +63,15 @@ namespace TicTacToe.Algorithm
             return false;
         }
         
-        public static bool CrossCheck(Board board, int size)
+        public static bool CrossCheck(List<List<Cell>> board, int size)
         {
-            var firstSymbol = board.Cells[0][0];
+            var firstSymbol = board[0][0];
             if (firstSymbol != Cell.Empty)
             {
                 bool mainDiagonalWin = true;
                 for (int i = 1; i < size; i++)
                 {
-                    if (board.Cells[i][i] != firstSymbol)
+                    if (board[i][i] != firstSymbol)
                     {
                         mainDiagonalWin = false;
                         break;
@@ -81,13 +81,13 @@ namespace TicTacToe.Algorithm
                     return true;
             }
             
-            firstSymbol = board.Cells[0][size - 1];
+            firstSymbol = board[0][size - 1];
             if (firstSymbol != Cell.Empty)
             {
                 bool antiDiagonalWin = true;
                 for (int i = 1; i < size; i++)
                 {
-                    if (board.Cells[i][size - i - 1] != firstSymbol)
+                    if (board[i][size - i - 1] != firstSymbol)
                     {
                         antiDiagonalWin = false;
                         break;

@@ -8,7 +8,7 @@ namespace TicTacToe.Models
     {
         public Guid Id { get; set; }
         [Required]
-        public Board Board { get; set; }
+        public List<List<Cell>> Board { get; set; }
         public int Size { get; set; }
         public Guid PlayerOneId { get; set; }
         public Guid PlayerTwoId { get; set; }
@@ -16,10 +16,9 @@ namespace TicTacToe.Models
         public GameStatus Status { get; set; }
         public int StepCount  { get; set; }
         
-        private static Board InitializeBoard(int Size)
+        private static List<List<Cell>> InitializeBoard(int Size)
         {
-            var board = new Board();
-            board.Cells = new List<List<Cell>>();
+            var board = new List<List<Cell>>();
             for (int i = 0; i < Size; i++)
             {
                 var row = new List<Cell>();
@@ -27,7 +26,7 @@ namespace TicTacToe.Models
                 {
                     row.Add(Cell.Empty);
                 }
-                board.Cells.Add(row);
+                board.Add(row);
             }
             
             return board;
@@ -65,7 +64,7 @@ namespace TicTacToe.Models
                 throw new InvalidOperationException("Игра уже закончилась");
             }
 
-            if (game.Board.Cells[row][column] != Cell.Empty)
+            if (game.Board[row][column] != Cell.Empty)
             {
                 throw new InvalidOperationException("Клетка уже занята");
             }
@@ -93,21 +92,21 @@ namespace TicTacToe.Models
             {
                 if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
                 {
-                    game.Board.Cells[row][column] = Cell.O;
+                    game.Board[row][column] = Cell.O;
                 }
                 else
                 {
-                    game.Board.Cells[row][column] = Cell.X;
+                    game.Board[row][column] = Cell.X;
                 }
             }else if (game.PlayerTwoId == playerId)
             {
                 if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
                 {
-                    game.Board.Cells[row][column] = Cell.X;
+                    game.Board[row][column] = Cell.X;
                 }
                 else
                 {
-                    game.Board.Cells[row][column] = Cell.O;
+                    game.Board[row][column] = Cell.O;
                 }
             }
             
