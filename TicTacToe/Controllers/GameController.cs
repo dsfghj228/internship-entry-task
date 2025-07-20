@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TicTacToe.Extensions;
 using TicTacToe.Interfaces;
 using TicTacToe.Models;
 using TicTacToe.Services;
@@ -12,9 +13,9 @@ namespace TicTacToe.Controllers
         private static Game _currentGame;
         private readonly IConfiguration _config;
         private readonly IGameRepository _gameRepository;
-        private readonly ETagService  _tagService;
+        private readonly IETagService  _tagService;
 
-        public GameController(IConfiguration config, IGameRepository gameRepository, ETagService tagService)
+        public GameController(IConfiguration config, IGameRepository gameRepository, IETagService tagService)
         {
             _config = config;
             _gameRepository = gameRepository;
@@ -24,103 +25,74 @@ namespace TicTacToe.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateGame(Guid playerOneId, Guid playerTwoId)
         {
-            try
-            {
-                var size = _config.GetValue<int>("AppSettings:Size");
-                var gameForCreate = Game.StartGame(playerOneId, playerTwoId, size);
-                var newGame = await _gameRepository.CreateGameAsync(gameForCreate);
+            
+            var size = _config.GetValue<int>("AppSettings:Size");
+            var gameForCreate = Game.StartGame(playerOneId, playerTwoId, size);
+            var newGame = await _gameRepository.CreateGameAsync(gameForCreate);
                 
-                var etag = _tagService.GenerateETag(newGame);
+            var etag = _tagService.GenerateETag(newGame);
     
-                Response.Headers.ETag = etag;
-                return Ok(newGame);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Internal server error: " + ex.Message);
-            }
+            Response.Headers.ETag = etag;
+            return Ok(newGame);
         }
 
         [HttpGet("{gameId}")]
         public async Task<IActionResult> GetGame(Guid gameId)
         {
-            try
+            var game = await _gameRepository.GetByIdAsync(gameId);
+            if (game == null)
             {
-                var game = await _gameRepository.GetByIdAsync(gameId);
-                if (game == null)
-                {
-                    return NotFound();
-                }
+                throw new ApiException.GameNotFoundException(gameId);
+            }
                 
-                var etag = _tagService.GenerateETag(game);
+            var etag = _tagService.GenerateETag(game);
     
-                Response.Headers.ETag = etag;
+            Response.Headers.ETag = etag;
                 
-                return Ok(game);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, "Internal server error: " + e.Message);
-            }
+            return Ok(game);
         }
 
         [HttpPost("move/{gameId}")]
         public async Task<IActionResult> Move(Guid gameId, int row, int column, [FromHeader(Name = "If-Match")] string ifMatchHeader)
         {
-            try
+            var game = await _gameRepository.GetByIdAsync(gameId);
+            if (game == null)
             {
-                // var curPlayer = _currentGame.CurrentPlayerId;
-                // _currentGame = Game.Move(_currentGame, curPlayer, row, column);
-                // return Ok(_currentGame);
-
-                var game = await _gameRepository.GetByIdAsync(gameId);
-                if (game == null)
-                {
-                    return NotFound();
-                }
-                
-                var currentEtag = _tagService.GenerateETag(game);
-
-                if (!string.IsNullOrEmpty(ifMatchHeader) && ifMatchHeader != currentEtag)
-                {
-                    return Ok(game);
-                }
-
-                var curPlayer = game.CurrentPlayerId;
-                var updatedGame = Game.Move(game, curPlayer, row, column);
-                
-                var newEtag = _tagService.GenerateETag(updatedGame);
-                
-                await _gameRepository.MoveAsync(updatedGame);
-                
-                Response.Headers.ETag = newEtag;
-                return Ok(updatedGame);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
+                throw new ApiException.GameNotFoundException(gameId);
             }
             
+            if (row >= game.Size || column >= game.Size)
+            {
+                throw new ApiException.InvalidCellException(row, column, game.Size);
+            }
+                
+            var currentEtag = _tagService.GenerateETag(game);
+
+            if (!string.IsNullOrEmpty(ifMatchHeader) && ifMatchHeader != currentEtag)
+            {
+                return Ok(game);
+            }
+
+            var curPlayer = game.CurrentPlayerId;
+            game.Move(curPlayer, row, column);
+                
+            var newEtag = _tagService.GenerateETag(game);
+                
+            await _gameRepository.MoveAsync(game);
+                
+            Response.Headers.ETag = newEtag;
+            return Ok(game);
         }
 
         [HttpDelete("{gameId}")]
         public async Task<IActionResult> DeleteGame(Guid gameId)
         {
-            try
+            var res = await _gameRepository.DeleteGameAsync(gameId);
+            if (!res)
             {
-                var res = await _gameRepository.DeleteGameAsync(gameId);
-                if (!res)
-                {
-                    return NotFound();
-                }
-                return Ok();
-                
+                throw new ApiException.GameNotFoundException(gameId);
             }
-            catch (Exception e)
-            {
-                return StatusCode(500, "Internal server error: " + e.Message);
-            }
+            return Ok();
         }
         
     }

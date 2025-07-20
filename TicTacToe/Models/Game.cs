@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using TicTacToe.Enums;
 using TicTacToe.Algorithm;
+using TicTacToe.Extensions;
 
 namespace TicTacToe.Models
 {
@@ -52,87 +53,87 @@ namespace TicTacToe.Models
             return InitializeGame(playerOneId, playerTwoId, size);
         }
 
-        public static Game Move(Game game, Guid playerId, int row, int column)
+        public void Move( Guid playerId, int row, int column)
         {
-            if (game.Status == GameStatus.NotStarted)
+            if (Status == GameStatus.NotStarted)
             {
-                game.Status = GameStatus.InProgress;
+                Status = GameStatus.InProgress;
             }
             
-            if (game.Status == GameStatus.Finished)
+            if (Status == GameStatus.Finished)
             {
-                throw new InvalidOperationException("Игра уже закончилась");
+                throw new ApiException.GameAlreadyCompletedException(Id);
             }
 
-            if (game.Board[row][column] != Cell.Empty)
+            if (Board[row][column] != Cell.Empty)
             {
-                return game;
+                return;
             }
 
-            if (game.Size < row || column > game.Size)
+            if (Size < row || column > Size)
             {
-                throw new InvalidOperationException("Ячейки с таким индексом не существует");
+                throw new ApiException.InvalidCellException(row, column, Size);
             }
 
-            if (playerId != game.CurrentPlayerId)
+            if (playerId != CurrentPlayerId)
             {
-                throw new InvalidOperationException("Сейчас очередь другого игрока");
+                throw new ApiException.WrongPlayerTurnException(playerId);
             }
 
-            if (game.PlayerOneId != playerId && game.PlayerTwoId != playerId)
+            if (PlayerOneId != playerId && PlayerTwoId != playerId)
             {
-                throw new InvalidOperationException("В данной игре нет игроков с таким Id");
+                throw new ApiException.PlayerNotFoundException(playerId);
             }
             
             
             
             Random random = new Random();
 
-            if (game.PlayerOneId == playerId)
+            if (PlayerOneId == playerId)
             {
-                if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
+                if (StepCount % 3 == 0 && random.NextDouble() < 0.1)
                 {
-                    game.Board[row][column] = Cell.O;
+                    Board[row][column] = Cell.O;
                 }
                 else
                 {
-                    game.Board[row][column] = Cell.X;
+                    Board[row][column] = Cell.X;
                 }
-            }else if (game.PlayerTwoId == playerId)
+            }else if (PlayerTwoId == playerId)
             {
-                if (game.StepCount % 3 == 0 && random.NextDouble() < 0.1)
+                if (StepCount % 3 == 0 && random.NextDouble() < 0.1)
                 {
-                    game.Board[row][column] = Cell.X;
+                    Board[row][column] = Cell.X;
                 }
                 else
                 {
-                    game.Board[row][column] = Cell.O;
+                    Board[row][column] = Cell.O;
                 }
             }
             
-            game.CurrentPlayerId = game.PlayerOneId == playerId ? game.PlayerTwoId : game.PlayerOneId;
+            CurrentPlayerId = PlayerOneId == playerId ? PlayerTwoId : PlayerOneId;
 
-            if (GameAlgorithm.VerticalCheck(game.Board, game.Size) ||
-                GameAlgorithm.HorizontalCheck(game.Board, game.Size) ||
-                GameAlgorithm.CrossCheck(game.Board, game.Size))
+            if (GameAlgorithm.VerticalCheck(Board, Size) ||
+                GameAlgorithm.HorizontalCheck(Board, Size) ||
+                GameAlgorithm.CrossCheck(Board, Size))
             {
-                game.Status = GameStatus.Finished;
+                Status = GameStatus.Finished;
             }
             
-            if (game.StepCount == 0)
+            if (StepCount == 0)
             {
-                game.Status = GameStatus.InProgress;
+                Status = GameStatus.InProgress;
             }
-            game.StepCount++;
+            StepCount++;
 
-            if (game.StepCount >= (game.Size * game.Size))
+            if (StepCount >= (Size * Size))
             {
-                game.Status = GameStatus.Finished;
+                Status = GameStatus.Finished;
             }
             
             
             
-            return game;
+            return;
         }
     }
 }
