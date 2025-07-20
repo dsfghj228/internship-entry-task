@@ -13,9 +13,9 @@ namespace TicTacToe.Controllers
         private static Game _currentGame;
         private readonly IConfiguration _config;
         private readonly IGameRepository _gameRepository;
-        private readonly ETagService  _tagService;
+        private readonly IETagService  _tagService;
 
-        public GameController(IConfiguration config, IGameRepository gameRepository, ETagService tagService)
+        public GameController(IConfiguration config, IGameRepository gameRepository, IETagService tagService)
         {
             _config = config;
             _gameRepository = gameRepository;
@@ -74,14 +74,14 @@ namespace TicTacToe.Controllers
             }
 
             var curPlayer = game.CurrentPlayerId;
-            var updatedGame = Game.Move(game, curPlayer, row, column);
+            game.Move(curPlayer, row, column);
                 
-            var newEtag = _tagService.GenerateETag(updatedGame);
+            var newEtag = _tagService.GenerateETag(game);
                 
-            await _gameRepository.MoveAsync(updatedGame);
+            await _gameRepository.MoveAsync(game);
                 
             Response.Headers.ETag = newEtag;
-            return Ok(updatedGame);
+            return Ok(game);
         }
 
         [HttpDelete("{gameId}")]

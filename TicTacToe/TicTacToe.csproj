@@ -21,4 +21,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="TicTacToe.UnitTests\obj\project.assets.json" />
+    <_ContentIncludedByDefault Remove="TicTacToe.UnitTests\obj\TicTacToe.UnitTests.csproj.nuget.dgspec.json" />
+  </ItemGroup>
+
 </Project>

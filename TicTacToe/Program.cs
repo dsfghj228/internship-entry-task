@@ -75,7 +75,7 @@ builder.Services.AddProblemDetails(options =>
 });
 
 builder.Services.AddScoped<IGameRepository, GameRepository>();
-builder.Services.AddScoped<ETagService>();
+builder.Services.AddScoped<IETagService, ETagService>();
 
 var app = builder.Build();
 

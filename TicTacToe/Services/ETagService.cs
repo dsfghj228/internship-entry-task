@@ -1,10 +1,11 @@
 using TicTacToe.Models;
 using System.Security.Cryptography;
 using System.Text;
+using TicTacToe.Interfaces;
 
 namespace TicTacToe.Services
 {
-    public class ETagService
+    public class ETagService  : IETagService
     {
         public ETagService()
         {
