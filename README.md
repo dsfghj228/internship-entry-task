@@ -13,7 +13,7 @@
 
 - **Presentation Layer (UI Layer)**
 
-GameController  - контроллер эндпоинтов самой игры.
+GameController - контроллер эндпоинтов самой игры.
 HealthController - контроллер возвращающий 200 OK
 
 - **Application Layer (Business Logic Layer, BLL)**
