@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using TicTacToe.Enums;
 using TicTacToe.Algorithm;
+using TicTacToe.Extensions;
 
 namespace TicTacToe.Models
 {
@@ -61,7 +62,7 @@ namespace TicTacToe.Models
             
             if (game.Status == GameStatus.Finished)
             {
-                throw new InvalidOperationException("Игра уже закончилась");
+                throw new ApiException.GameAlreadyCompletedException(game.Id);
             }
 
             if (game.Board[row][column] != Cell.Empty)
@@ -71,17 +72,17 @@ namespace TicTacToe.Models
 
             if (game.Size < row || column > game.Size)
             {
-                throw new InvalidOperationException("Ячейки с таким индексом не существует");
+                throw new ApiException.InvalidCellException(row, column, game.Size);
             }
 
             if (playerId != game.CurrentPlayerId)
             {
-                throw new InvalidOperationException("Сейчас очередь другого игрока");
+                throw new ApiException.WrongPlayerTurnException(playerId);
             }
 
             if (game.PlayerOneId != playerId && game.PlayerTwoId != playerId)
             {
-                throw new InvalidOperationException("В данной игре нет игроков с таким Id");
+                throw new ApiException.PlayerNotFoundException(playerId);
             }
             
             
