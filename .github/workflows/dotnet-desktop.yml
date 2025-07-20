@@ -1,4 +1,4 @@
-name: .NET Tests
+name: .NET Tests with PostgreSQL
 
 on:
   push:
@@ -44,17 +44,27 @@ jobs:
       run: dotnet build --no-restore --configuration Release
       
     - name: Wait for PostgreSQL
-      run: sleep 10  # Даем PostgreSQL время для полного запуска
+      run: |
+        for i in {1..10}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+            echo "PostgreSQL is ready!"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "PostgreSQL failed to start"
+        exit 1
 
     - name: Run EF Core migrations
       run: dotnet ef database update --project TicTacToe --verbose
 
-    - name: Test
-      run: dotnet test --no-build --configuration Release --logger "console;verbosity=detailed"
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --logger "console;verbosity=detailed" --results-directory TestResults
       
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: "**/TestResults/*.trx"
+        path: TestResults/**/*
+        retention-days: 1
