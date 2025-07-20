@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TicTacToe.Interfaces;
 using TicTacToe.Models;
+using TicTacToe.Services;
 
 namespace TicTacToe.Controllers
 {
@@ -11,11 +12,13 @@ namespace TicTacToe.Controllers
         private static Game _currentGame;
         private readonly IConfiguration _config;
         private readonly IGameRepository _gameRepository;
+        private readonly ETagService  _tagService;
 
-        public GameController(IConfiguration config, IGameRepository gameRepository)
+        public GameController(IConfiguration config, IGameRepository gameRepository, ETagService tagService)
         {
             _config = config;
             _gameRepository = gameRepository;
+            _tagService = tagService;
         }
 
         [HttpPost("create")]
@@ -26,6 +29,10 @@ namespace TicTacToe.Controllers
                 var size = _config.GetValue<int>("AppSettings:Size");
                 var gameForCreate = Game.StartGame(playerOneId, playerTwoId, size);
                 var newGame = await _gameRepository.CreateGameAsync(gameForCreate);
+                
+                var etag = _tagService.GenerateETag(newGame);
+    
+                Response.Headers.ETag = etag;
                 return Ok(newGame);
             }
             catch (Exception ex)
@@ -45,6 +52,10 @@ namespace TicTacToe.Controllers
                     return NotFound();
                 }
                 
+                var etag = _tagService.GenerateETag(game);
+    
+                Response.Headers.ETag = etag;
+                
                 return Ok(game);
             }
             catch (Exception e)
@@ -54,7 +65,7 @@ namespace TicTacToe.Controllers
         }
 
         [HttpPost("move/{gameId}")]
-        public async Task<IActionResult> Move(Guid gameId, int row, int column)
+        public async Task<IActionResult> Move(Guid gameId, int row, int column, [FromHeader(Name = "If-Match")] string ifMatchHeader)
         {
             try
             {
@@ -67,10 +78,22 @@ namespace TicTacToe.Controllers
                 {
                     return NotFound();
                 }
+                
+                var currentEtag = _tagService.GenerateETag(game);
+
+                if (!string.IsNullOrEmpty(ifMatchHeader) && ifMatchHeader != currentEtag)
+                {
+                    return Ok(game);
+                }
 
                 var curPlayer = game.CurrentPlayerId;
                 var updatedGame = Game.Move(game, curPlayer, row, column);
+                
+                var newEtag = _tagService.GenerateETag(updatedGame);
+                
                 await _gameRepository.MoveAsync(updatedGame);
+                
+                Response.Headers.ETag = newEtag;
                 return Ok(updatedGame);
             }
             catch (Exception e)
