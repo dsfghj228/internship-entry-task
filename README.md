@@ -24,6 +24,8 @@ HealthController - контроллер возвращающий 200 OK
 Game - сущность игры
 
 ## Запуск проект
+  1. Запустите через Docker: docker-compose up --build
+  2. API будет доступно по адресу http://0.0.0.0:8080/swagger/index.html 
 
 
 ## Описание API
