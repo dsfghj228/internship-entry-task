@@ -66,7 +66,7 @@ namespace TicTacToe.Models
 
             if (game.Board[row][column] != Cell.Empty)
             {
-                throw new InvalidOperationException("Клетка уже занята");
+                return game;
             }
 
             if (game.Size < row || column > game.Size)

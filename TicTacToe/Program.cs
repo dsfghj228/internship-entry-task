@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TicTacToe.Data;
 using TicTacToe.Interfaces;
 using TicTacToe.Repository;
+using TicTacToe.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 builder.Services.AddScoped<IGameRepository, GameRepository>();
+builder.Services.AddScoped<ETagService>();
 
 var app = builder.Build();
 
