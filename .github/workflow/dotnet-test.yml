@@ -2,10 +2,17 @@ name: .NET Tests
 
 on:
   push:
-    branches: [ main, feature/* ]
+    branches: [main, feature/*]
   pull_request:
-    branches: [ main, feature/* ]
+    branches: [main, feature/*]
 
+jobs:
+  test-on-all-os:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    
     services:
       postgres:
         image: postgres:15
@@ -16,34 +23,31 @@ on:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-jobs:
-  test-on-all-os:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-      
-    - name: Run EF Core migrations
-      run: dotnet ef database update --project TicTacToe
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
 
-    - name: Test
-      run: dotnet test --no-build --configuration Release --logger trx
+      - name: Run EF Core migrations
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=tictactoe;Username=postgres;Password=1234567890"
+        run: dotnet ef database update --project TicTacToe
+
+      - name: Test
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=tictactoe;Username=postgres;Password=1234567890"
+        run: dotnet test --no-build --configuration Release --logger trx
