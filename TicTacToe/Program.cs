@@ -79,6 +79,12 @@ builder.Services.AddScoped<IETagService, ETagService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 app.UseProblemDetails();
 // Включаем Swagger UI в Development
 if (app.Environment.IsDevelopment())
